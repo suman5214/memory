@@ -172,16 +172,14 @@ char *find_physpage(addr_t vaddr, char type) {
 		}
 		else{
 			printf("2\n");
-			swap_pagein(p->frame, p->swap_off); //got page information
 			
-			int frame_page = allocate_frame(p); //put page into a (virtual) frame
-			//now need to set p->frame (the physical page)
-			//left shift by PAGE_SHIFT to make it the same bits as phys addr
-			p->frame = frame_page << PAGE_SHIFT; 
-			// just swapped in, make sure it isnt set to onswap "just in case"
-			p->frame &= ~PG_ONSWAP;
-			// just swapped in, make sure it isnt set to dirty "just in case"
-			p->frame &= ~PG_DIRTY;
+			swap_pagein(frame_num,p->swap_off);
+			int frame_num = allocate_frame(p);
+			p->frame = frame_num << PAGE_SHIFT;
+			p->swap_off = INVALID_SWAP;
+			p->frame = p->frame & ~PG_ONSWAP;
+			p->frame = p->frame & ~PG_DIRTY;
+
 		}
 
 	}
