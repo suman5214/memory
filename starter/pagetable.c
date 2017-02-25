@@ -164,12 +164,14 @@ char *find_physpage(addr_t vaddr, char type) {
 		miss_count++;
 		printf("into valid\n");
 		if(!(p->frame & PG_ONSWAP)){
+			printf("1\n");
 			int frame_num = allocate_frame(p);
 			init_frame(frame_num,vaddr);
 			p->frame = frame_num << PAGE_SHIFT;
 
 		}
 		else{
+			printf("2\n");
 			int frame_num = allocate_frame(p);
 			swap_pagein(frame_num,p->swap_off);
 
