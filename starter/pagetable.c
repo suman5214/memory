@@ -173,7 +173,7 @@ char *find_physpage(addr_t vaddr, char type) {
 		else{
 			printf("2\n");
 			
-			swap_pagein(frame_num,p->swap_off);
+			swap_pagein(p->frame,p->swap_off);
 			int frame_num = allocate_frame(p);
 			p->frame = frame_num << PAGE_SHIFT;
 			p->swap_off = INVALID_SWAP;
