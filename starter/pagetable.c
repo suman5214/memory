@@ -39,22 +39,33 @@ int allocate_frame(pgtbl_entry_t *p) {
 		// All frames were in use, so victim frame must hold some page
 		// Write victim page to swap, if needed, and update pagetable
 		// IMPLEMENTATION NEEDED
-		pgtbl_entry_t *p = coremap[frame].pte;
-
-		if(p->frame & PG_DIRTY){
-			int new_swap;
-			new_swap = swap_pageout(frame,p->swap_off);
-			p->swap_off = new_swap;
-			p->frame = p->frame | PG_ONSWAP;
+		
+		// first increment relevant counters
+		// coremap[frame] gives you a pgtbl_entry_t that stores the frame
+		pgtbl_entry_t *pte = coremap[frame].pte;
+		if (pte->frame & PG_DIRTY) {
 			evict_dirty_count++;
+			// need to swap out page
+			// pte struct is a pointer so point through it to get swap_off
+			int offset = swap_pageout(frame, pte->swap_off);
+			// need to set the page's new offset
+			pte->swap_off = offset;
 		}
-		else{
+		else
 			evict_clean_count++;
-		}
-		p->frame = p->frame & ~PG_VALID;
 
+		
+		// now need to update PTE to show that virtual page is removed from memory
+		pte->frame &= ~PG_VALID; //frame is now out of memory
+		// also show that it has been swapped out
+		pte->frame |= PG_ONSWAP;
+		// since page is now swapped out there is a "backup" that is the same as this
+		// so this page hasn't been technically modified yet
+		pte->frame &= ~PG_DIRTY;
 	}
-
+	//this solved some issues but made things way worse???
+	//p->frame = frame << PAGE_SHIFT;
+	//p->frame |= PG_VALID;	
 	// Record information for virtual page that will now be stored in frame
 	coremap[frame].in_use = 1;
 	coremap[frame].pte = p;
